@@ -1,19 +1,21 @@
 ; naskfunc
 ; TAB=4
 
-[FORMAT "WCOFF"]				; ÖÆ×÷Ä¿±êÎÄ¼şµÄÄ£Ê½	
-[INSTRSET "i486p"]				; ¸æËßnask£¬Õâ¸ö³ÌĞòÊÇ¸ø486Ê¹ÓÃµÄ
-[BITS 32]						; ÖÆ×÷32Î»Ä£Ê½ÓÃµÄ»úĞµÓïÑÔ
-[FILE "naskfunc.nas"]			; Ô´ÎÄ¼şÃûĞÅÏ¢
-		; ĞèÒªÁ´½ÓµÄº¯ÊıÃû¶¼ÒªÓÃGLOBALÖ¸ÁîÉùÃ÷£¬º¯ÊıÃûÇ°¼ÓÉÏ "_"£¬·ñÔò²»ÄÜºÜºÃµØÓëCÓïÑÔº¯ÊıÁ´½Ó£¨naskÄ¿±êÎÄ¼şÄ£Ê½µÄ¹æ¶¨£©
+[FORMAT "WCOFF"]				; åˆ¶ä½œç›®æ ‡æ–‡ä»¶çš„æ¨¡å¼	
+[INSTRSET "i486p"]				; å‘Šè¯‰naskï¼Œè¿™ä¸ªç¨‹åºæ˜¯ç»™486ä½¿ç”¨çš„
+[BITS 32]						; åˆ¶ä½œ32ä½æ¨¡å¼ç”¨çš„æœºæ¢°è¯­è¨€
+[FILE "naskfunc.nas"]			; æºæ–‡ä»¶åä¿¡æ¯
+		; éœ€è¦é“¾æ¥çš„å‡½æ•°åéƒ½è¦ç”¨GLOBALæŒ‡ä»¤å£°æ˜ï¼Œå‡½æ•°åå‰åŠ ä¸Š "_"ï¼Œå¦åˆ™ä¸èƒ½å¾ˆå¥½åœ°ä¸Cè¯­è¨€å‡½æ•°é“¾æ¥ï¼ˆnaskç›®æ ‡æ–‡ä»¶æ¨¡å¼çš„è§„å®šï¼‰
 		GLOBAL	_io_hlt, _io_cli, _io_sti, _io_stihlt
 		GLOBAL	_io_in8,  _io_in16,  _io_in32
 		GLOBAL	_io_out8, _io_out16, _io_out32
 		GLOBAL	_io_load_eflags, _io_store_eflags
 		GLOBAL	_load_gdtr, _load_idtr
+        GLOBAL	_asm_inthandler21, _asm_inthandler27, _asm_inthandler2c
+        EXTERN	_inthandler21, _inthandler27, _inthandler2c
 
-;ÒÔÏÂÊÇÊµ¼ÊµÄº¯Êı
-[SECTION .text]					; Ä¿±êÎÄ¼şÖĞĞ´ÁËÕâĞ©Ö®ºóÔÙĞ´³ÌĞò
+;ä»¥ä¸‹æ˜¯å®é™…çš„å‡½æ•°
+[SECTION .text]					; ç›®æ ‡æ–‡ä»¶ä¸­å†™äº†è¿™äº›ä¹‹åå†å†™ç¨‹åº
 
 _io_hlt:	; void io_hlt(void);
 		HLT
@@ -68,14 +70,14 @@ _io_out32:	; void io_out32(int port, int data);
 		RET
 
 _io_load_eflags:	; int io_load_eflags(void);
-		PUSHFD		; PUSH EFLAGS ¤È¤¤¤¦ÒâÎ¶
+		PUSHFD		; PUSH EFLAGS ã¨ã„ã†æ„å‘³
 		POP		EAX
-		RET			; Ö´ĞĞRETÓï¾äÊ±£¬EAXÖĞµÄÖµ±»¿´×÷ÊÇº¯ÊıµÄ·µ»ØÖµ
+		RET			; æ‰§è¡ŒRETè¯­å¥æ—¶ï¼ŒEAXä¸­çš„å€¼è¢«çœ‹ä½œæ˜¯å‡½æ•°çš„è¿”å›å€¼
 
 _io_store_eflags:	; void io_store_eflags(int eflags);
 		MOV		EAX,[ESP+4]
 		PUSH	EAX
-		POPFD		; POP EFLAGS ¤È¤¤¤¦ÒâÎ¶
+		POPFD		; POP EFLAGS ã¨ã„ã†æ„å‘³
 		RET
 
 ;Use to set the segment upper limit
@@ -90,3 +92,51 @@ _load_idtr:		; void load_idtr(int limit, int addr);
 		MOV		[ESP+6],AX		; [ESP+6] represent addr
 		LIDT	[ESP+6]			; A instruction used to load six byte in GDTR register
 		RET
+
+_asm_inthandler21:
+		PUSH	ES
+		PUSH	DS
+		PUSHAD
+		MOV		EAX,ESP
+		PUSH	EAX
+		MOV		AX,SS
+		MOV		DS,AX
+		MOV		ES,AX
+		CALL	_inthandler21
+		POP		EAX
+		POPAD
+		POP		DS
+		POP		ES
+		IRETD
+
+_asm_inthandler27:
+		PUSH	ES
+		PUSH	DS
+		PUSHAD
+		MOV		EAX,ESP
+		PUSH	EAX
+		MOV		AX,SS
+		MOV		DS,AX
+		MOV		ES,AX
+		CALL	_inthandler27
+		POP		EAX
+		POPAD
+		POP		DS
+		POP		ES
+		IRETD
+
+_asm_inthandler2c:
+		PUSH	ES
+		PUSH	DS
+		PUSHAD
+		MOV		EAX,ESP
+		PUSH	EAX
+		MOV		AX,SS
+		MOV		DS,AX
+		MOV		ES,AX
+		CALL	_inthandler2c
+		POP		EAX
+		POPAD
+		POP		DS
+		POP		ES
+		IRETD

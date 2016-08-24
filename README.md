@@ -9,5 +9,6 @@ This is a project just for fun and study, It is a operatiing system named EZPion
 3. Click EZPioneer/src/!cons_nt.bat.
 4. Input "make run" in the command line, and press enter.
 5. Finsh.
+
 ###Conmon error solve method when run the project.
 1. If your path environment contain "bash conmand" like "git bin environment" remove it.
