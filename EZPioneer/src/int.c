@@ -27,22 +27,22 @@ struct FIFO8 keyfifo;
 void inthandler21(int *esp) {
 // 来自PS/2键盘的中断
     unsigned char data;
-    io_out8(PIC0_OCW2, 0x61); // 0x61 = 0x60 + IRQ号码（这里为1），用来通知PIC继续监视IRQ1中断，等于鼓励信号。
+    io_out8(PIC0_OCW2, 0x61); // 0x61 = 0x60 + IRQ号码（这里为1），用来通知PIC0继续监视IRQ1中断，等于鼓励信号。
     data = io_in8(PORT_KEYDAT);
 
     fifo8_put(&keyfifo, data);
     return;
 }
 
-void inthandler2c(int *esp)
-/* PS/2マウスからの割り込み */
-{
-    struct BOOTINFO *binfo = (struct BOOTINFO *) ADR_BOOTINFO;
-    boxfill8(binfo->vram, binfo->scrnx, COL8_000000, 0, 0, 32 * 8 - 1, 15);
-    putfonts8_asc(binfo->vram, binfo->scrnx, 0, 0, COL8_FFFFFF, "INT 2C (IRQ-12) : PS/2 mouse");
-    for (;;) {
-        io_hlt();
-    }
+struct FIFO8 mousefifo;
+void inthandler2c(int *esp) {
+/* 来自PS/2鼠标的中断 */
+    unsigned char data;
+    io_out8(PIC1_OCW2, 0x64); // 0x64 = 0x60 + IRQ号码（这里为4），用来通知PIC1继续监视IRQ12(从PIC相当于IRQ -08 ~ IRQ -15 4 + 8 = 12)中断，等于鼓励信号。
+    io_out8(PIC0_OCW2, 0x62); // 0x62 = 0x60 + IRQ号码（这里为2），用来通知PIC0继续监视IRQ2中断，等于鼓励信号。
+    data = io_in8(PORT_KEYDAT);
+    fifo8_put(&mousefifo, data);
+    return;
 }
 
 void inthandler27(int *esp)

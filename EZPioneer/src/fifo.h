@@ -1,3 +1,5 @@
+#define FLAGS_OVERRUN       0x0001
+
 struct FIFO8 {
     unsigned char *buf;
     int p, q, size, free, flags;
