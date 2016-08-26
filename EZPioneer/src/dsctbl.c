@@ -54,3 +54,4 @@ void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar)
 	gd->offset_high  = (offset >> 16) & 0xffff;
 	return;
 }
+

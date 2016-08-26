@@ -13,6 +13,11 @@ void HariMain(void) {
     init_gdtidt();
     init_pic();
     io_sti(); /* IDT/PICの初期化が終わったのでCPUの割り込み禁止を解除 */
+    fifo8_init(&keyfifo, 32, keybuf);
+    io_out8(PIC0_IMR, 0xF9); /* PIC1とキーボードを許可(11111001) */
+    io_out8(PIC1_IMR, 0xEF); /* マウスを許可(11101111) */
+
+    init_keyboard();
 
     init_palette();
     init_screen8(binfo->vram, binfo->scrnx, binfo->scrny);
@@ -23,10 +28,8 @@ void HariMain(void) {
     sprintf(s, "(%d, %d)", mx, my);
     putfonts8_asc(binfo->vram, binfo->scrnx, 0, 0, COL8_FFFFFF, s);
 
-    io_out8(PIC0_IMR, 0xF9); /* PIC1とキーボードを許可(11111001) */
-    io_out8(PIC1_IMR, 0xEF); /* マウスを許可(11101111) */
+    enable_mouse();
 
-    fifo8_init(&keyfifo, 32, keybuf);
     for (;;) {
         io_cli();
         if(fifo8_status(&keyfifo) == 0) {

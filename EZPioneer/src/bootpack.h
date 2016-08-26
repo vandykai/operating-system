@@ -15,3 +15,8 @@
 
 /* int.c */
 #include "int.h"
+
+/* mouse.c */
+
+#include "mouse.h"
+
