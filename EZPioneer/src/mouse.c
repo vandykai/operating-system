@@ -1,33 +1,52 @@
 #include "bootpack.h"
 
-/*
-* Êó±ê¿ØÖÆµçÂ·°üº¬ÔÚ¼üÅÌ¿ØÖÆµçÂ·Àï£¬Èç¹û¼üÅÌ¿ØÖÆµçÂ·µÄ³õÊ¼»¯Õı³£Íê³É£¬
-* Êó±êµçÂ·¿ØÖÆÆ÷µÄ¼¤»îÒ²¾ÍÍê³ÉÁË¡£
-*/
-void wait_KBC_sendready(void) {
-/* µÈ´ı¼üÅÌ¿ØÖÆµçÂ·×¼±¸Íê±Ï */
-    for (;;) {
-        if ((io_in8(PORT_KEYSTA) & KEYSTA_SEND_NOTREADY) == 0) {
-            break;
-        }
-    }
-    return;
-}
-
-void init_keyboard(void) {
-/* ³õÊ¼»¯¼üÅÌ¿ØÖÆµçÂ· */
-    wait_KBC_sendready();
-    io_out8(PORT_KEYCMD, KEYCMD_WRITE_MODE);
-    wait_KBC_sendready();
-    io_out8(PORT_KEYDAT, KBC_MODE);
-    return;
-}
-
-void enable_mouse(void) {
-/* ¼¤»îÊó±ê */
+void enable_mouse(struct MOUSE_DEC * mdec) {
+/* æ¿€æ´»é¼ æ ‡ */
+    /* é¼ æ ‡æœ‰æ•ˆ */
     wait_KBC_sendready();
     io_out8(PORT_KEYCMD, KEYCMD_SENDTO_MOUSE);
     wait_KBC_sendready();
     io_out8(PORT_KEYDAT, MOUSECMD_ENABLE);
-    return; /* Ë³ÀûµÄ»°£¬¼üÅÌ¿ØÖÆÆä·µ»ØËÍ»ØACK£¨0xFA£© */
+    /* é¡ºåˆ©çš„è¯ï¼Œé”®ç›˜æ§åˆ¶é€å›ACKï¼ˆ0xFAï¼‰ */
+    mdec->phase = 0; /* ç­‰å¾…0xFAçš„é˜¶æ®µ */
+    return;
+}
+
+int mouse_decode(struct MOUSE_DEC *mdec, unsigned char dat) {
+    if (mdec->phase == 0) {
+        /* ç­‰å¾…é¼ æ ‡çš„0xFAé˜¶æ®µ */
+        if (dat == 0xFA) {
+            mdec->phase = 1;
+        }
+        return 0;
+    } else if (mdec->phase == 1) {
+        /* ç­‰å¾…é¼ æ ‡çš„ç¬¬ä¸€å­—èŠ‚é˜¶æ®µ */
+        if ((dat & 0xC8) == 0x08) { // ç”¨äºåˆ¤æ–­ç¬¬ä¸€å­—èŠ‚å¯¹ç§»åŠ¨æœ‰ååº”çš„éƒ¨åˆ†ï¼ˆé«˜å››ä½ï¼‰æ˜¯å¦åœ¨0 ~ 3çš„èŒƒå›´å†…ï¼›åŒæ—¶è¿˜è¦åˆ¤æ–­ç¬¬ä¸€å­—èŠ‚å¯¹ç‚¹å‡»æœ‰ååº”çš„éƒ¨åˆ†ï¼ˆä½å››ä½ï¼‰æ˜¯å¦åœ¨8 ~ Fçš„èŒƒå›´å†…;æ­¤åˆ¤æ–­è¿˜å¯ä»¥ä¸¢å¼ƒé”™ä½çš„æ•°æ®ã€‚
+            mdec->buf[0] = dat;
+            mdec->phase = 2;
+        }
+        return 0;
+    } else if (mdec->phase == 2) {
+        /* ç­‰å¾…é¼ æ ‡çš„ç¬¬äºŒå­—èŠ‚é˜¶æ®µ */
+        mdec->buf[1] = dat;
+        mdec->phase = 3;
+        return 0;
+    } else if (mdec->phase == 3) {
+        /* ç­‰å¾…é¼ æ ‡çš„ç¬¬ä¸‰å­—èŠ‚é˜¶æ®µ */
+        mdec->buf[2] = dat;
+        mdec->phase = 1;
+
+        mdec->btn = mdec->buf[0] & 0x07; // é¼ æ ‡é”®çš„çŠ¶æ€æ”¾åœ¨buf[0]çš„ä½3ä½  
+        mdec->x = mdec->buf[1];
+        mdec->y = mdec->buf[2];
+        if ((mdec->buf[0] & 0x10) != 0) {
+            mdec->x |= 0xFFFFFF00;
+        }
+        if ((mdec->buf[0] & 0x20) != 0) {
+            mdec->y |= 0xFFFFFF00;
+        }
+        mdec->y = - mdec->y; // é¼ æ ‡çš„yæ–¹å‘ä¸ç”»é¢ç¬¦å·ç›¸å
+        return 1;
+    }
+    return -1; /* åº”è¯¥ä¸å¯èƒ½åˆ°è¿™é‡Œæ¥ */
 }

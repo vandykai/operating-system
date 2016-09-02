@@ -4,7 +4,7 @@ This is a project just for fun and study, It is a operatiing system named EZPion
 ---------
 
 ### How to run it
-1. You should have the enviromment windowns.
+1. You should have a windowns enviromment.
 2. Clone the project to you local.
 3. Click EZPioneer/src/!cons_nt.bat.
 4. Input "make run" in the command line, and press enter.
