@@ -93,6 +93,7 @@ _load_idtr:		; void load_idtr(int limit, int addr);
 		LIDT	[ESP+6]			; A instruction used to load six byte in GDTR register
 		RET
 
+; C语言认为DS也好，ES也好，SS也好，它都是指同一个段，所以要相等
 _asm_inthandler21:
 		PUSH	ES
 		PUSH	DS
@@ -109,6 +110,7 @@ _asm_inthandler21:
 		POP		ES
 		IRETD
 
+; C语言认为DS也好，ES也好，SS也好，它都是指同一个段，所以要相等
 _asm_inthandler27:
 		PUSH	ES
 		PUSH	DS
@@ -125,6 +127,7 @@ _asm_inthandler27:
 		POP		ES
 		IRETD
 
+; C语言认为DS也好，ES也好，SS也好，它都是指同一个段，所以要相等
 _asm_inthandler2c:
 		PUSH	ES
 		PUSH	DS
